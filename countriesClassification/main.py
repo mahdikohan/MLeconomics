@@ -16,11 +16,11 @@ def get_reg(y):
                                                              [xn]]
         at the end we get intercept and coefficent.
         
-        Return [       reg, 
-                         X,
-                 intercept,
-                coefficent
-               ]
+            Return [       reg, 
+                            X,
+                    intercept,
+                    coefficent
+                ]
     """
 
     reg = linear_model.LinearRegression()
@@ -58,57 +58,43 @@ df_deathr.drop(columns=df_deathr.columns[-1], axis=1, inplace=True)
 
 # --------------------------------
 # Analysis oil
+all_years = [str(year) for year in range(1960,2023)]
+years = [str(year) for year in range(2009, 2022)]
+df_oilp.fillna(0, inplace=True)
 
-# df_oilp_data = df_oilp.iloc[:,15:-1]
-df_oilp_data = df_oilp.iloc[:,-10:-1].sum(axis=1)/10
-df_oilp_data = df_oilp_data.reset_index()
-df_oilp_data.columns = ["index","avg oil"]
-df_oilp_data.drop(columns=["index"], inplace=True)
-
-df_oilp_data = pd.concat([df_gdp, df_oilp_data], axis=1)
-
-print(df_oilp_data)
-# country_list = df_oilp.iloc[:,:4]
-
-# df_oilp_data = pd.concat([country_list, df_oilp_data], axis=1)
-
-# # print(type(df_oilp_data))
-# print(df_oilp_data)
-# # plt.plot(df_oilp_data)
-# # plt.show()
-
-# --------------------------------
-# Analysis export
-
-
-# --------------------------------
-# Analysis GDP per capita
-# print(df_export)
+col_rem = df_oilp.columns
+# print(df_oilp[df_oilp['Country Name'].str.contains('Iran')])
+df_oilp['avg oil gdp'] = df_oilp[years].sum(axis=1)/len(years)
+df_oilp.drop(labels=col_rem, axis=1, inplace=True)
+# print(df_oilp[df_oilp['Country Name'].str.contains('Iran')])
 
 # --------------------------------
 # Analysis GDPs
 
-# temp1 = df_gdp.dropna(how="any").reset_index(drop=True)
+temp1 = pd.concat([df_gdp, df_oilp], axis=1)
+temp1 = temp1.dropna(how="any").reset_index(drop=True)
 
-# df_gdp_log = temp1.iloc[:,4:]
-# country_list = temp1.iloc[:,:4]
-# gdp_log = np.log(df_gdp_log.to_numpy())
+temp2 = temp1.drop(labels=['avg oil gdp'], axis=1)
+temp3 = temp1.drop(labels=temp2.columns, axis=1)
 
-# gdp = []
-# inter = []
-# beta = []
-# r2 = []
+mt_gdp_log = np.log(temp2[all_years].to_numpy())
+temp2['log_gdp'] = 0.0
+temp2['inter'] = 0.0
+temp2['beta'] = 0.0
+temp2['r2'] = 0.0
 
-# for j in range(len(gdp_log)):
-#     country = country_list.iloc[j,0]
-#     reg = get_reg(gdp_log[j])
+for j in range(len(mt_gdp_log)):
+    reg = get_reg(mt_gdp_log[j])
+    temp2.at[j, 'gdp'] = mt_gdp_log[j][-1]
+    temp2.at[j, 'inter'] = reg[0]
+    temp2.at[j, 'beta'] = reg[1]
+    temp2.at[j, 'r2'] = reg[2]
 
-#     gdp.append(gdp_log[j][-1])
-#     inter.append(reg[0])
-#     beta.append(reg[1])
-#     r2.append(reg[2])
+temp2.drop(labels=all_years, axis=1, inplace=True)
 
-#     print(country,reg)
+temp4 = pd.concat([temp2,temp3], axis=1)
+
+print(temp4)
 
 # plt.scatter(gdp, beta)
 # # plt.scatter(inter, r2)
