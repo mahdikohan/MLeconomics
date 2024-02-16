@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
-from sklearn.impute import KNNImputer
 import matplotlib.pyplot as plt
-
 
 def get_reg(y):
     """ 
@@ -39,11 +37,9 @@ df_import.drop(columns=df_import.columns[-1], axis=1, inplace=True)
 df_export = pd.read_csv('data/API_NE.EXP.GNFS.CD_DS2_en_csv_v2_6300789.csv')
 df_export.drop(columns=df_export.columns[-1], axis=1, inplace=True)
 
-df_gdp = pd.read_csv('data/API_NY.GDP.MKTP.CD_DS2_en_csv_v2_6298258.csv')
-df_gdp.drop(columns=df_gdp.columns[-1], axis=1, inplace=True)
+df_gdp = pd.read_csv('data/GDP_filled_miss_values_knn.csv')
 
-df_gdppc = pd.read_csv('data/API_NY.GDP.PCAP.CD_DS2_en_csv_v2_6298251.csv')
-df_gdppc.drop(columns=df_gdppc.columns[-1], axis=1, inplace=True)
+df_gdppc = pd.read_csv('data/GDP_pcap_filled_miss_values_knn.csv')
 
 df_oilp = pd.read_csv('data/API_NY.GDP.PETR.RT.ZS_DS2_en_csv_v2_6305850.csv')
 df_oilp.drop(columns=df_oilp.columns[-1], axis=1, inplace=True)
@@ -62,46 +58,59 @@ df_deathr.drop(columns=df_deathr.columns[-1], axis=1, inplace=True)
 all_years = [str(year) for year in range(1960,2023)]
 years = [str(year) for year in range(2009, 2022)]
 df_oilp.fillna(0, inplace=True)
-
-col_rem = df_oilp.columns
-# print(df_oilp[df_oilp['Country Name'].str.contains('Iran')])
+col_rem_oilp = df_oilp.columns
 df_oilp['avg oil gdp'] = df_oilp[years].sum(axis=1)/len(years)
-df_oilp.drop(labels=col_rem, axis=1, inplace=True)
-# print(df_oilp[df_oilp['Country Name'].str.contains('Iran')])
+df_oilp.drop(labels=col_rem_oilp, axis=1, inplace=True)
+temp1 = df_oilp.copy()
+print(temp1)
 
 # --------------------------------
 # Analysis GDPs
+col_rem_gdp = df_gdp.columns
+mt_gdp_log = np.log(df_gdp[all_years].to_numpy())
 
-temp1 = pd.concat([df_gdp, df_oilp], axis=1)
-temp1 = temp1.dropna(subset=all_years, how="any").reset_index(drop=True)
-
-temp2 = temp1.drop(labels=['avg oil gdp'], axis=1)
-temp3 = temp1.drop(labels=temp2.columns, axis=1)
-
-mt_gdp_log = np.log(temp2[all_years].to_numpy())
-
-# fill miss values of GDP time series in each country with KNN algorithm
-imputer = KNNImputer(n_neighbors=10, weights="uniform")
-X = mt_gdp_log
-mt_gdp_log = imputer.fit_transform(X)
-
-
-temp2['log_gdp'] = 0.0
-temp2['inter'] = 0.0
-temp2['beta'] = 0.0
-temp2['r2'] = 0.0
+df_gdp['log_gdp'] = 0.0
+df_gdp['inter'] = 0.0
+df_gdp['beta'] = 0.0
+df_gdp['r2'] = 0.0
 
 for j in range(len(mt_gdp_log)):
     reg = get_reg(mt_gdp_log[j])
-    temp2.at[j, 'gdp'] = mt_gdp_log[j][-1]
-    temp2.at[j, 'inter'] = reg[0]
-    temp2.at[j, 'beta'] = reg[1]
-    temp2.at[j, 'r2'] = reg[2]
+    df_gdp.at[j, 'gdp'] = mt_gdp_log[j][-1]
+    df_gdp.at[j, 'inter'] = reg[0]
+    df_gdp.at[j, 'beta'] = reg[1]
+    df_gdp.at[j, 'r2'] = reg[2]
 
-temp2.drop(labels=all_years, axis=1, inplace=True)
-temp4 = pd.concat([temp2,temp3], axis=1)
+df_gdp.drop(labels=col_rem_gdp, axis=1, inplace=True)
+temp2 = pd.concat([df_gdp,temp1], axis=1)
 
-print(temp4.columns)
+print(temp2)
+
+# ---------------------------------
+# Analysis GDP per capita
+mt_gdp_percap_log = np.log(df_gdppc[all_years].to_numpy())
+
+df_gdppc['log_gdp'] = 0.0
+df_gdppc['inter'] = 0.0
+df_gdppc['beta'] = 0.0
+df_gdppc['r2'] = 0.0
+
+for j in range(len(mt_gdp_percap_log)):
+    reg = get_reg(mt_gdp_percap_log[j])
+    df_gdppc.at[j, 'gdp'] = mt_gdp_percap_log[j][-1]
+    df_gdppc.at[j, 'inter'] = reg[0]
+    df_gdppc.at[j, 'beta'] = reg[1]
+    df_gdppc.at[j, 'r2'] = reg[2]
+
+df_gdppc.drop(labels=all_years, axis=1, inplace=True)
+temp3 = pd.concat([df_gdp,temp1], axis=1)
+
+
+# ---------------------------------
+
+
+
+
 
 # plt.scatter(temp4['gdp'], temp4['beta'])
 # plt.scatter(temp4['inter'], temp4['r2'])
