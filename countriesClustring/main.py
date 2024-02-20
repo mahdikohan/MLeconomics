@@ -117,10 +117,17 @@ cols = cols.drop(['Country Name'])
 print(temp3[cols])
 
 
+# print(temp3[cols].corr())
+# sns.heatmap(temp3[cols].corr(), annot=True)
+# plt.show()
 
-print(temp3[cols].corr())
-sns.heatmap(temp3[cols].corr(), annot=True)
-plt.show()
+# ---------------------------------
+# Beacuse of correlation between log_gdp and inter_reg_gdp
+# we remove one of them (inter_reg_gdp)
+
+temp3.drop(['inter_reg_gdp'], axis=1, inplace=True)
+print(temp3)
+
 # plt.scatter(temp4['gdp'], temp4['beta'])
 # plt.scatter(temp4['inter'], temp4['r2'])
 # plt.scatter(temp4['beta'], temp4['avg oil gdp'])
