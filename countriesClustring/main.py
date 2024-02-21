@@ -145,4 +145,4 @@ df['label'] = label
 df['country Name'] = countryName
 
 
-df.to_csv(r"C:\Users\pc\Desktop\countries\countriesClustring\result.csv")
+df.to_csv("result.csv")
