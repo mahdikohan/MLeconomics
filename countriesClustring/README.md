@@ -12,6 +12,8 @@ This project aims to cluster countries based on various features to uncover patt
 ## Methodology
 We utilized a correlation matrix to identify and remove additional features that may introduce multicollinearity issues or redundancy in the clustering analysis. Features with high correlations (above a predefined threshold) were excluded to ensure the independence of variables used for clustering.
 
+![Correlation Matrix](mahdikohan/mlEconomics/countriesClustring/corr.png)
+
 Next, we employed the K-means clustering algorithm to group countries based on the selected features. K-means is a centroid-based clustering algorithm that partitions data into K clusters, where each data point belongs to the cluster with the nearest mean. The process involves iteratively optimizing cluster centroids to minimize the within-cluster sum of squared distances.
 
 ## Dataset
