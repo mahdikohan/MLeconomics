@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn import linear_model
+from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
 
 def get_reg(y):
     """ 
@@ -117,9 +119,9 @@ cols = cols.drop(['Country Name'])
 print(temp3[cols])
 
 
-# print(temp3[cols].corr())
-# sns.heatmap(temp3[cols].corr(), annot=True)
-# plt.show()
+print(temp3[cols].corr())
+sns.heatmap(temp3[cols].corr(), annot=True)
+plt.show()
 
 # ---------------------------------
 # Beacuse of correlation between log_gdp and inter_reg_gdp
@@ -128,10 +130,19 @@ print(temp3[cols])
 temp3.drop(['inter_reg_gdp'], axis=1, inplace=True)
 print(temp3)
 
-# plt.scatter(temp4['gdp'], temp4['beta'])
-# plt.scatter(temp4['inter'], temp4['r2'])
-# plt.scatter(temp4['beta'], temp4['avg oil gdp'])
-# # plt.scatter(beta, r2)
-# # plt.scatter(beta, inter)
 
-# plt.show()
+countryName=temp3['Country Name'].values.tolist()
+temp3.drop(['Country Name'], axis=1, inplace=True)
+col = temp3.columns
+X = temp3.to_numpy()
+print(X)
+kmeans = KMeans(n_clusters=10, random_state=0)
+kmeans.fit(X)
+label = kmeans.labels_
+
+df = pd.DataFrame(X, columns = col)
+df['label'] = label
+df['country Name'] = countryName
+
+
+df.to_csv(r"C:\Users\pc\Desktop\countries\countriesClustring\result.csv")
